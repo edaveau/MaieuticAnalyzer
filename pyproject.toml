@@ -6,6 +6,8 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.135.1",
+    "pandas>=3.0.1",
+    "xlrd>=2.0.2",
 ]
 
 [dependency-groups]
