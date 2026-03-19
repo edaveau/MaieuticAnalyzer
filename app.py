@@ -1,5 +1,7 @@
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 import shutil
 import os
 import logging
@@ -7,6 +9,7 @@ import logging
 from processing import load_and_clean_excel, compute_retrocessions
 
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 os.makedirs("logs", exist_ok=True)
 
@@ -19,21 +22,7 @@ logging.basicConfig(
 
 @app.get("/", response_class=HTMLResponse)
 def home():
-    return """
-    <html>
-    <body>
-        <h2>Calcul rétrocessions</h2>
-        <form action="/upload" method="post" enctype="multipart/form-data">
-            IK: <input type="text" name="ik" value="0.61"><br>
-            IF: <input type="text" name="if_val" value="4"><br>
-            MD: <input type="text" name="md" value="10"><br><br>
-
-            <input type="file" name="file">
-            <input type="submit">
-        </form>
-    </body>
-    </html>
-    """
+    return Path("templates/index.html").read_text(encoding="utf-8")
 
 
 @app.post("/upload")
@@ -45,11 +34,15 @@ async def upload(
 ):
     temp_path = f"temp_{file.filename}"
 
-    with open(temp_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    try:
+        with open(temp_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
 
-    df = load_and_clean_excel(temp_path)
-    result = compute_retrocessions(df, ik, if_val, md)
+        df = load_and_clean_excel(temp_path)
+        result = compute_retrocessions(df, ik, if_val, md)
+    except Exception as e:
+        logging.exception("Erreur lors du traitement du fichier.")
+        raise HTTPException(status_code=500, detail=str(e))
 
     os.remove(temp_path)
 

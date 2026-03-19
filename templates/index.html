@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Rétrocessions Sage-Femme</title>
+
+<link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+<div class="container">
+
+    <h2>🧮 Calcul des rétrocessions</h2>
+
+    <div class="card">
+        <div>
+            IK
+            <span class="tooltip" data-tooltip="Indemnité kilométrique">❓</span>
+            <input id="ik" value="0.61">
+
+            IF
+            <span class="tooltip" data-tooltip="Indemnité forfaitaire de déplacement">❓</span>
+            <input id="if_val" value="4">
+
+            MD
+            <span class="tooltip" data-tooltip="Majoration de déplacement">❓</span>
+            <input id="md" value="10">
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="drop-zone" id="dropZone">
+            <div id="dropText">📂 Glissez votre fichier Excel ici ou cliquez</div>
+            <div id="fileName" class="file-name"></div>
+            <input type="file" id="fileInput" hidden>
+        </div>
+
+        <button onclick="upload()">Calculer</button>
+    </div>
+
+    <div id="errorBox" class="error"></div>
+
+    <div class="card">
+        <table id="resultTable">
+            <thead>
+                <tr>
+                    <th>ADELI</th>
+                    <th>Remplaçant·e</th>
+                    <th>Total</th>
+                    <th>Indemnités</th>
+                    <th>30%</th>
+                    <th>40%</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
