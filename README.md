@@ -11,3 +11,9 @@ Pour générer des certificats locaux :
 ```
 sudo apt update && sudo apt install mkcert && mkcert localhost
 ```
+
+Puis, pour un quickstart : 
+
+```
+python -m uvicorn app:app
+```
