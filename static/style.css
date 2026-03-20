@@ -77,13 +77,18 @@ tr:hover {
     background: #f9fafb;
 }
 
+.calculate {
+    margin: auto;
+    display: block;
+}
+
 /* Drop zone */
 .drop-zone {
     border: 2px dashed #ccc;
-    padding: 30px;
+    padding: 10px;
     text-align: center;
-    border-radius: 10px;
-    margin-bottom: 15px;
+    border-radius: 5px;
+    margin-bottom: 5px;
     cursor: pointer;
 }
 

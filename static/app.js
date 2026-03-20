@@ -3,6 +3,26 @@ let selectedFile = null;
 const dropZone = document.getElementById("dropZone");
 const fileInput = document.getElementById("fileInput");
 const fileNameDisplay = document.getElementById("fileName");
+const DEFAULTS = {
+    ik: 0.61,
+    if_val: 4,
+    md: 10
+};
+
+function resetValues(showMessage = true) {
+    document.getElementById("ik").value = DEFAULTS.ik;
+    document.getElementById("if_val").value = DEFAULTS.if_val;
+    document.getElementById("md").value = DEFAULTS.md;
+
+    if (showMessage) {
+        showSuccess("Valeurs réinitialisées");
+    }
+}
+
+// chargement des valeurs if/ik/md au chargement de la page
+window.onload = () => {
+    resetValues(false);
+};
 
 // clic
 dropZone.onclick = () => fileInput.click();
@@ -37,12 +57,12 @@ async function upload() {
     errorBox.style.display = "none";
 
     if (!selectedFile) {
-        showError("Veuillez sélectionner un fichier.");
+        showError("Veuillez sélectionner un ficher ou le déposer dans la zone dédiée.");
         return;
     }
 
     if (!selectedFile.name.endsWith(".xls") && !selectedFile.name.endsWith(".xlsx")) {
-        showError("Format invalide. Fichier Excel requis.");
+        showError("Format invalide. Fichier Excel .xls/.xlsx requis.");
         return;
     }
 
@@ -95,4 +115,16 @@ function showError(msg) {
     const box = document.getElementById("errorBox");
     box.innerText = msg;
     box.style.display = "block";
+}
+
+function showSuccess(msg) {
+    const box = document.getElementById("errorBox");
+    box.style.background = "#dcfce7";
+    box.style.color = "#166534";
+    box.innerText = msg;
+    box.style.display = "block";
+
+    setTimeout(() => {
+        box.style.display = "none";
+    }, 2000);
 }

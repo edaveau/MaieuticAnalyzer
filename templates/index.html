@@ -10,21 +10,24 @@
 <body>
 <div class="container">
 
-    <h2>Calcul des rétrocessions</h2>
+    <h2>Calcul des rétrocessions MaïeuticApp</h2>
 
     <div class="card">
         <div>
             IK
-            <span class="tooltip" data-tooltip="Indemnité kilométrique">❓</span>
-            <input id="ik" value="0.61">
+            <input id="ik">
+            <span class="tooltip" data-tooltip="Indemnité kilométrique"><sup>?</sup></span>
 
             IF
-            <span class="tooltip" data-tooltip="Indemnité forfaitaire de déplacement">❓</span>
-            <input id="if_val" value="4">
+            <input id="if_val">
+            <span class="tooltip" data-tooltip="Indemnité forfaitaire de déplacement"><sup>?</sup></span>
 
             MD
-            <span class="tooltip" data-tooltip="Majoration de déplacement">❓</span>
-            <input id="md" value="10">
+            <input id="md">
+            <span class="tooltip" data-tooltip="Majoration de déplacement"><sup>?</sup></span>
+            <button onclick="resetValues()" style="margin-left:10px; background:#e5e7eb; color:#111;">
+                    Réinitialiser
+            </button>
         </div>
     </div>
 
@@ -35,7 +38,7 @@
             <input type="file" id="fileInput" hidden>
         </div>
 
-        <button onclick="upload()">Calculer</button>
+        <button onclick="upload()" class="calculate">Calculer les rétrocessions</button>
     </div>
 
     <div id="errorBox" class="error"></div>
