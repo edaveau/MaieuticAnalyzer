@@ -2,3 +2,4 @@ ChatGPT.md
 test.py
 data/*
 logs/*
+*.pyc

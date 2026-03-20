@@ -1,55 +1,71 @@
 import pandas as pd
 import logging
-import re
 
 logger = logging.getLogger(__name__)
 
-KNOWN_SF = {
+KNOWN_SF_WITH_DOT = {
     "SF7.5",
-    "SF12.6",
     "SF11.6",
-    "SF15.6",
-    "SF22.6",
     "SF12.5",
+    "SF12.6",
+    "SF15.6",
     "SF16.5",
     "SF19.5",
+    "SF22.6",
 }
 
+RETROCESSIONS_VARIABLES = {
+    "IK": 0.61,
+    "IF": 4,
+    "MD": 10
+}
+
+KNOWN_SF_COMPRESSED = {
+    sf.replace(".", "") for sf in KNOWN_SF_WITH_DOT
+}
 
 def fix_sf_code(acte: str):
     """
-    Corrige les SF mal parsés (eg. SF165 -> SF16.5)
+    Corrige uniquement les SF connus comme devant avoir un point.
+    Exemple :
+    SF165 -> SF16.5
+    SF12 -> reste SF12
     """
-    match = re.match(r"SF(\d+)", acte)
-    if match:
-        val = match.group(1)
-        if len(val) >= 2:
-            fixed = f"SF{val[:-1]}.{val[-1]}"
-            return fixed
+    if not acte.startswith("SF"):
+        return acte
+
+    if acte in KNOWN_SF_WITH_DOT:
+        return acte  # déjà correct
+
+    if acte in KNOWN_SF_COMPRESSED:
+        # reconstruire avec le point
+        val = acte[2:]
+        return f"SF{val[:-1]}.{val[-1]}"
+    
+    if acte.startswith("SF") and acte not in KNOWN_SF_WITH_DOT and acte not in KNOWN_SF_COMPRESSED:
+        logger.info(f"SF inconnu rencontré (laissé tel quel): {acte}")
+
+    # sinon on laisse tel quel (nouveau SF ou valide)
     return acte
 
 
 def parse_actes(actes_str):
     """
     MaieuticApp renvoie l'ensemble des actes cotés dans une même colonne,
-    séparés par une virgule. On parse ici l'ensemble de ces actes.
+    séparés par une virgule (eg. "SF125, MD, IKP")
+    On parse ici l'ensemble de ces actes.
     """
     actes = [a.strip() for a in actes_str.split(",")]
 
     fixed_actes = []
+
     for a in actes:
-        if a.startswith("SF"):
-            # Comme les actes cotés sont séparés par des virgules, MaieuticApp
-            # supprime les virgules de la valeur des cotations SF lel
-            fixed = fix_sf_code(a)
-            if fixed not in KNOWN_SF:
-                logger.warning(f"SF inconnu détecté: {fixed}")
-            fixed_actes.append(fixed)
-        else:
-            fixed_actes.append(a)
+        fixed = fix_sf_code(a)
 
         if a == "IKM":
-            logger.warning("IKM détectés (Même les Monts d'Arrée ne justifient pas des IKM !)")
+            logger.warning("WARNING : IKM détecté (anormal en Bretagne)")
+
+        fixed_actes.append(fixed)
 
     return fixed_actes
 
@@ -83,18 +99,24 @@ def load_and_clean_excel(file):
     return df
 
 
-def compute_retrocessions(df, ik_value=0.61, if_value=4, md_value=10):
+def compute_retrocessions(df, ik_value=RETROCESSIONS_VARIABLES["IK"], if_value=RETROCESSIONS_VARIABLES["IF"], md_value=RETROCESSIONS_VARIABLES["MD"]):
     """
     Fonction de calcul des rétrocessions prenant en compte la logique métier suivante :
     Les IF, IK et MD doivent être traitées à part du montant total des honoraires.
+
+    Input de la fonction : Dataframe telle que renvoyée par load_and_clean_excel()
     """
     results = {}
 
     for _, row in df.iterrows():
+        # On boucle ligne par ligne, chaque ligne correspondans à un acte, une patiente, une facturation
+
         # Le numéro ADELI et la colonne rempla permettent
         # d'identifier les sages-femmes à l'origine de l'acte
         key = (row["numero_adeli"], row["rempla"])
 
+        # On initialise l'aggrégation et les valeurs de total pour toute sage-femme
+        # n'étant pas encore dans `results`
         if key not in results:
             results[key] = {"total": 0, "total_sans_indemnites": 0, "total_ik_if_md": 0}
 
