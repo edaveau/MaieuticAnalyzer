@@ -5,13 +5,16 @@ from pathlib import Path
 import shutil
 import os
 import logging
+import uvicorn
 
 from processing import load_and_clean_excel, compute_retrocessions
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-os.makedirs("logs", exist_ok=True)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+LOG_DIR = os.path.join(BASE_DIR, "logs")
+os.makedirs(LOG_DIR, exist_ok=True)
 
 logging.basicConfig(
     filename="logs/app.log",
@@ -47,3 +50,13 @@ async def upload(
     os.remove(temp_path)
 
     return result
+
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "app:app",
+        host="127.0.0.1",
+        port=8443,
+        ssl_certfile="certs/localhost.pem",
+        ssl_keyfile="certs/localhost-key.pem"
+    )

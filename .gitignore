@@ -2,4 +2,8 @@ ChatGPT.md
 test.py
 data/*
 logs/*
+certs/*
+__pycache__/
+build/
+dist/
 **/*.pyc
