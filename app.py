@@ -36,14 +36,36 @@ BASE_PATH = get_base_path()
 
 templates_path = os.path.join(BASE_PATH, "templates")
 static_path = os.path.join(BASE_PATH, "static")
-if getattr(sys, 'frozen', False):
-    # Dans le bundle PyInstaller, les certs sont à la racine de _MEIPASS
-    cert_path = os.path.join(BASE_PATH, "cert.pem")
-    key_path = os.path.join(BASE_PATH, "key.pem")
-else:
-    # En développement, ils sont dans le sous-dossier certs/
-    cert_path = os.path.join(BASE_PATH, "certs", "cert.pem")
-    key_path = os.path.join(BASE_PATH, "certs", "key.pem")
+
+def find_cert(filename: str) -> str:
+    """
+    Cherche un certificat dans cet ordre de priorité :
+    1. À côté de l'exe (déposé par l'installeur)
+    2. Dans _MEIPASS (embarqué dans le binaire PyInstaller)
+    3. Dans certs/ (mode développement)
+    """
+    candidates = []
+
+    if getattr(sys, 'frozen', False):
+        # Priorité 1 : dossier de l'exe (installeur)
+        candidates.append(os.path.join(os.path.dirname(sys.executable), filename))
+        # Priorité 2 : _MEIPASS (embarqué)
+        candidates.append(os.path.join(sys._MEIPASS, filename))
+    else:
+        # Mode dev : sous-dossier certs/
+        candidates.append(os.path.join(BASE_PATH, "certs", filename))
+
+    for path in candidates:
+        if os.path.exists(path):
+            logging.info(f"Certificat trouvé : {path}")
+            return path
+
+    raise FileNotFoundError(
+        f"Certificat '{filename}' introuvable. Chemins essayés : {candidates}"
+    )
+
+cert_path = find_cert("cert.pem")
+key_path  = find_cert("key.pem")
 
 # Logs portables Windows/Linux
 if os.name == 'nt':
