@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 a = Analysis(
-    ['app.py', 'processing.py'],  # <- ajout de processing.py
+    ['app.py', 'processing.py'],
     pathex=[],
     binaries=[],
     datas=[
@@ -23,10 +23,8 @@ a = Analysis(
         'uvicorn.lifespan.on',
         'anyio',
         'anyio._backends._asyncio',
-        # libs Excel — décommentez selon ce que processing.py utilise
-        # 'xlrd',
-        # 'openpyxl',
-        # 'xlwt',
+        'xlrd',
+        'openpyxl',
     ],
     hookspath=[],
     hooksconfig={},
@@ -51,7 +49,7 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=True,
+    console=True,  
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

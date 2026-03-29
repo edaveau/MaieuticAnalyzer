@@ -22,10 +22,16 @@ BASE_PATH = get_base_path()
 
 templates_path = os.path.join(BASE_PATH, "templates")
 static_path = os.path.join(BASE_PATH, "static")
-cert_path = os.path.join(BASE_PATH, "cert.pem")
-key_path = os.path.join(BASE_PATH, "key.pem")
+if getattr(sys, 'frozen', False):
+    # Dans le bundle PyInstaller, les certs sont à la racine de _MEIPASS
+    cert_path = os.path.join(BASE_PATH, "cert.pem")
+    key_path = os.path.join(BASE_PATH, "key.pem")
+else:
+    # En développement, ils sont dans le sous-dossier certs/
+    cert_path = os.path.join(BASE_PATH, "certs", "cert.pem")
+    key_path = os.path.join(BASE_PATH, "certs", "key.pem")
 
-# --- Logs : portable Windows/Linux ---
+# Logs portables Windows/Linux
 if os.name == 'nt':
     log_base = os.getenv("APPDATA", os.path.expanduser("~"))
 else:
@@ -48,7 +54,6 @@ templates = Jinja2Templates(directory=templates_path)
 
 @app.get("/", response_class=HTMLResponse)
 def home():
-    # Utilise BASE_PATH, pas un chemin relatif
     index_path = os.path.join(BASE_PATH, "templates", "index.html")
     return Path(index_path).read_text(encoding="utf-8")
 
@@ -60,7 +65,6 @@ async def upload(
     if_val: float = Form(...),
     md: float = Form(...),
 ):
-    # Écrit dans le répertoire temp système — toujours writable
     suffix = Path(file.filename).suffix
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
         shutil.copyfileobj(file.file, tmp)
@@ -86,5 +90,5 @@ if __name__ == "__main__":
         ssl_certfile=cert_path,
         ssl_keyfile=key_path,
         log_config=None,
-        log_level="warning",
+        log_level="warning"
     )
