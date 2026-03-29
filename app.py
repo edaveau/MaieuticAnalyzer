@@ -1,25 +1,46 @@
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from pathlib import Path
 import shutil
 import os
 import logging
 import uvicorn
+import sys
 
 from processing import load_and_clean_excel, compute_retrocessions
 
+
+def get_base_path():
+    if getattr(sys, 'frozen', False):
+        # mode PyInstaller
+        return sys._MEIPASS
+    # mode dev
+    return os.path.dirname(os.path.abspath(__file__))
+BASE_PATH = get_base_path()
+
+templates_path = os.path.join(BASE_PATH, "templates")
+static_path = os.path.join(BASE_PATH, "static")
+
+cert_path = os.path.join(BASE_PATH, "cert.pem")
+key_path = os.path.join(BASE_PATH, "key.pem")
+
+
 app = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=static_path), name="static")
+templates = Jinja2Templates(directory=templates_path)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-LOG_DIR = os.path.join(BASE_DIR, "logs")
+LOG_DIR = os.path.join(os.getenv("APPDATA"), "MaieuticAnalyzer", "logs")
 os.makedirs(LOG_DIR, exist_ok=True)
 
+log_file = os.path.join(LOG_DIR, "app.log")
+
 logging.basicConfig(
-    filename="logs/app.log",
+    filename=log_file,
     level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
+    format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
 
@@ -52,11 +73,12 @@ async def upload(
     return result
 
 
-if __name__ == "__main__":
-    uvicorn.run(
-        "app:app",
-        host="127.0.0.1",
-        port=8443,
-        ssl_certfile="certs/localhost.pem",
-        ssl_keyfile="certs/localhost-key.pem"
-    )
+uvicorn.run(
+    "app:app",
+    host="127.0.0.1",
+    port=8443,
+    ssl_certfile=cert_path,
+    ssl_keyfile=key_path,
+    log_config=None,
+    log_level="warning"
+)
