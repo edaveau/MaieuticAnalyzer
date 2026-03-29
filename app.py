@@ -1,3 +1,17 @@
+import sys
+import os
+import traceback
+
+# Piège à erreurs de démarrage — écrit AVANT toute initialisation
+_crash_log = os.path.join(os.path.expanduser("~"), "MaieuticAnalyzer_crash.log")
+
+def _excepthook(exc_type, exc_value, exc_tb):
+    with open(_crash_log, "w", encoding="utf-8") as f:
+        traceback.print_exception(exc_type, exc_value, exc_tb, file=f)
+    sys.__excepthook__(exc_type, exc_value, exc_tb)
+
+sys.excepthook = _excepthook
+
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -83,12 +97,17 @@ async def upload(
 
 
 if __name__ == "__main__":
-    uvicorn.run(
-        "app:app",
-        host="127.0.0.1",
-        port=8443,
-        ssl_certfile=cert_path,
-        ssl_keyfile=key_path,
-        log_config=None,
-        log_level="warning"
-    )
+    try:
+        uvicorn.run(
+            app,
+            host="127.0.0.1",
+            port=8443,
+            ssl_certfile=cert_path,
+            ssl_keyfile=key_path,
+            log_config=None,
+            log_level="warning",
+        )
+    except Exception:
+        with open(_crash_log, "w", encoding="utf-8") as f:
+            traceback.print_exc(file=f)
+        raise
