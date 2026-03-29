@@ -27,13 +27,14 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 uv sync
 ```
 
-Sur Windows, commencez par télécharger [NSIS](https://nsis.sourceforge.io/Main_Page) :
+Sur Windows, commencez par télécharger [NSIS](https://nsis.sourceforge.io/Main_Page), puis téléchargez les prérequis Python :
 ```ps1
+winget install NSIS.NSIS
 scoop install main/uv
 uv sync
 ```
 
-> Allez récupérer la [dernière version du build de mkcert](https://github.com/FiloSottile/mkcert/releases) pour Windows amd64, et placez la à la racine de ce dépôt dans un répertoire `.\bin\` que vous aurez créé.
+> Allez récupérer la [dernière version du build de mkcert](https://github.com/FiloSottile/mkcert/releases) pour Windows amd64, et placez la à la racine de ce dépôt dans un répertoire `.\bin\` que vous aurez créé. Renommez le en mkcert.exe
 
 ### Builder l'applicatif
 
@@ -49,5 +50,5 @@ pyinstaller MaieuticAnalyzer.spec
 
 Pour générer un installateur Windows :
 ```
-makensis MaieuticAnalyzer_installer.nsi
+& "C:\Program Files (x86)\NSIS\makensis.exe" MaieuticAnalyzer_installer.nsi
 ```
