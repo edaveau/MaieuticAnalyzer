@@ -8,3 +8,4 @@ build/
 dist/
 **/*.pyc
 bin/*
+MaieuticAnalyzer_Setup.exe
