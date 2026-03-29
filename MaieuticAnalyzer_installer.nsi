@@ -44,7 +44,7 @@ Section "Installation principale" SecMain
 
   ; --- Copie des fichiers applicatifs ---
   File "dist\${EXE_NAME}"
-  File "tools\mkcert.exe"
+  File "bin\mkcert.exe"
   ; Le XML de tache est copie ici pour etre patche au runtime
   File "MaieuticAnalyzer_task.xml"
 
