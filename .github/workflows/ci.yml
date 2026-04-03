@@ -92,4 +92,4 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: MaieuticAnalyzer-Setup
-          path: MaieuticAnalyzer_Setup.exe
+          path: MaieuticAnalyzer_${{ env.VERSION }}.exe
