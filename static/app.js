@@ -52,12 +52,11 @@ function handleFile(file) {
 
 // Upload
 async function upload() {
-
     const errorBox = document.getElementById("errorBox");
     errorBox.style.display = "none";
 
     if (!selectedFile) {
-        showError("Veuillez sélectionner un ficher ou le déposer dans la zone dédiée.");
+        showError("Veuillez sélectionner un fichier ou le déposer dans la zone dédiée.");
         return;
     }
 
@@ -78,16 +77,30 @@ async function upload() {
             body: formData
         });
 
-        if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.detail || "Erreur serveur");
+        // 1. On récupère d'abord la réponse sous forme de texte brut
+        const responseText = await res.text();
+
+        // 2. On essaie de voir si c'est du JSON
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (e) {
+            data = null;
         }
 
-        const data = await res.json();
+        if (!res.ok) {
+            // Si on a du JSON avec un champ 'detail', on l'affiche, sinon le texte brut, sinon le status
+            const errorMsg = (data && data.detail) ? data.detail : (responseText || `Erreur ${res.status}`);
+            throw new Error(errorMsg);
+        }
+
+        // Si tout va bien, on utilise les données parsées
         renderTable(data);
+        showSuccess("Calcul terminé avec succès !");
 
     } catch (err) {
-        showError(err.message);
+        console.error(err); // Utile pour toi dans la console du navigateur
+        showError("Erreur : " + err.message);
     }
 }
 
