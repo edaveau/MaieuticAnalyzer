@@ -5,10 +5,12 @@ import traceback
 # Piège à erreurs de démarrage — écrit AVANT toute initialisation
 _crash_log = os.path.join(os.path.expanduser("~"), "MaieuticAnalyzer_crash.log")
 
+
 def _excepthook(exc_type, exc_value, exc_tb):
     with open(_crash_log, "w", encoding="utf-8") as f:
         traceback.print_exception(exc_type, exc_value, exc_tb, file=f)
     sys.__excepthook__(exc_type, exc_value, exc_tb)
+
 
 sys.excepthook = _excepthook
 
@@ -27,7 +29,7 @@ from processing import load_and_clean_excel, compute_retrocessions
 
 
 def get_base_path():
-    if getattr(sys, 'frozen', False):
+    if getattr(sys, "frozen", False):
         return sys._MEIPASS
     return os.path.dirname(os.path.abspath(__file__))
 
@@ -36,6 +38,7 @@ BASE_PATH = get_base_path()
 
 templates_path = os.path.join(BASE_PATH, "templates")
 static_path = os.path.join(BASE_PATH, "static")
+
 
 def find_cert(filename: str) -> str:
     """
@@ -46,7 +49,7 @@ def find_cert(filename: str) -> str:
     """
     candidates = []
 
-    if getattr(sys, 'frozen', False):
+    if getattr(sys, "frozen", False):
         # Priorité 1 : dossier de l'exe (installeur)
         candidates.append(os.path.join(os.path.dirname(sys.executable), filename))
         # Priorité 2 : _MEIPASS (embarqué)
@@ -64,11 +67,12 @@ def find_cert(filename: str) -> str:
         f"Certificat '{filename}' introuvable. Chemins essayés : {candidates}"
     )
 
+
 cert_path = find_cert("cert.pem")
-key_path  = find_cert("key.pem")
+key_path = find_cert("key.pem")
 
 # Logs portables Windows/Linux
-if os.name == 'nt':
+if os.name == "nt":
     log_base = os.getenv("APPDATA", os.path.expanduser("~"))
 else:
     log_base = os.path.expanduser("~/.local/share")
@@ -80,7 +84,7 @@ log_file = os.path.join(LOG_DIR, "app.log")
 logging.basicConfig(
     filename=log_file,
     level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
+    format="%(asctime)s - %(levelname)s - %(message)s",
 )
 
 app = FastAPI()
@@ -113,10 +117,7 @@ async def upload(
     except Exception as e:
         logging.exception("Erreur lors du traitement du fichier.")
         # On retourne TOUJOURS du JSON, même en cas d'erreur
-        return JSONResponse(
-            status_code=500,
-            content={"error": True, "detail": str(e)}
-        )
+        return JSONResponse(status_code=500, content={"error": True, "detail": str(e)})
     finally:
         if os.path.exists(temp_path):
             os.remove(temp_path)
@@ -125,10 +126,8 @@ async def upload(
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logging.exception("Erreur non catchee")
-    return JSONResponse(
-        status_code=500,
-        content={"error": True, "detail": str(exc)}
-    )
+    return JSONResponse(status_code=500, content={"error": True, "detail": str(exc)})
+
 
 if __name__ == "__main__":
     try:

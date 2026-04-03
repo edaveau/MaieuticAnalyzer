@@ -14,15 +14,10 @@ KNOWN_SF_WITH_DOT = {
     "SF22.6",
 }
 
-RETROCESSIONS_VARIABLES = {
-    "IK": 0.61,
-    "IF": 4,
-    "MD": 10
-}
+RETROCESSIONS_VARIABLES = {"IK": 0.61, "IF": 4, "MD": 10}
 
-KNOWN_SF_COMPRESSED = {
-    sf.replace(".", "") for sf in KNOWN_SF_WITH_DOT
-}
+KNOWN_SF_COMPRESSED = {sf.replace(".", "") for sf in KNOWN_SF_WITH_DOT}
+
 
 def fix_sf_code(acte: str):
     """
@@ -41,8 +36,12 @@ def fix_sf_code(acte: str):
         # reconstruire avec le point
         val = acte[2:]
         return f"SF{val[:-1]}.{val[-1]}"
-    
-    if acte.startswith("SF") and acte not in KNOWN_SF_WITH_DOT and acte not in KNOWN_SF_COMPRESSED:
+
+    if (
+        acte.startswith("SF")
+        and acte not in KNOWN_SF_WITH_DOT
+        and acte not in KNOWN_SF_COMPRESSED
+    ):
         logger.info(f"SF inconnu rencontré (laissé tel quel): {acte}")
 
     # sinon on laisse tel quel (nouveau SF ou valide)
@@ -101,7 +100,12 @@ def load_and_clean_excel(file):
     return df
 
 
-def compute_retrocessions(df, ik_value=RETROCESSIONS_VARIABLES["IK"], if_value=RETROCESSIONS_VARIABLES["IF"], md_value=RETROCESSIONS_VARIABLES["MD"]):
+def compute_retrocessions(
+    df,
+    ik_value=RETROCESSIONS_VARIABLES["IK"],
+    if_value=RETROCESSIONS_VARIABLES["IF"],
+    md_value=RETROCESSIONS_VARIABLES["MD"],
+):
     """
     Fonction de calcul des rétrocessions prenant en compte la logique métier suivante :
     Les IF, IK et MD doivent être traitées à part du montant total des honoraires.
@@ -120,7 +124,12 @@ def compute_retrocessions(df, ik_value=RETROCESSIONS_VARIABLES["IK"], if_value=R
         # On initialise l'aggrégation et les valeurs de total pour toute sage-femme
         # n'étant pas encore dans `results`
         if key not in results:
-            results[key] = {"total": 0, "total_sans_indemnites": 0, "total_ik_if_md": 0, "total_moins_30pc": 0}
+            results[key] = {
+                "total": 0,
+                "total_sans_indemnites": 0,
+                "total_ik_if_md": 0,
+                "total_moins_30pc": 0,
+            }
 
         actes = parse_actes(row["actes"])
         honoraires = float(row["honoraire"])
