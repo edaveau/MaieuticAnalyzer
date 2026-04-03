@@ -1,3 +1,9 @@
+# MaieuticApp Analyzer
+
+## TLDR
+
+Petite application permettant de calculer les rétrocessions issues d'un export MaieuticApp.
+
 ## Build zone
 
 ### Installer les prérequis pour les certificats

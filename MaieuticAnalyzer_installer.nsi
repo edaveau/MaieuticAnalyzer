@@ -6,7 +6,9 @@ Unicode True
 
 ; ---------- Metadonnees ----------
 !define APP_NAME        "MaieuticAnalyzer"
-!define APP_VERSION     "1.1.0"
+!ifndef APP_VERSION
+  !define APP_VERSION "dev"
+!endif
 !define APP_PUBLISHER   "Cabinet de sages-femmes"
 !define APP_URL         "https://localhost:8443"
 !define EXE_NAME        "MaieuticAnalyzer.exe"
@@ -17,7 +19,7 @@ Unicode True
 
 ; ---------- Parametres generaux ----------
 Name              "${APP_NAME} ${APP_VERSION}"
-OutFile           "MaieuticAnalyzer_Setup.exe"
+OutFile "MaieuticAnalyzer_${APP_VERSION}.exe"
 InstallDir        "${INSTALL_DIR}"
 InstallDirRegKey  HKLM "${UNINSTALL_KEY}" "InstallLocation"
 RequestExecutionLevel admin
