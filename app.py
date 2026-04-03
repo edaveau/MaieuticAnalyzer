@@ -1,6 +1,16 @@
-import sys
+import logging
 import os
+import shutil
+import sys
+import tempfile
 import traceback
+import uvicorn
+from fastapi import FastAPI, UploadFile, File, Form, Request
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from pathlib import Path
+from processing import load_and_clean_excel, compute_retrocessions
 
 # Piège à erreurs de démarrage — écrit AVANT toute initialisation
 _crash_log = os.path.join(os.path.expanduser("~"), "MaieuticAnalyzer_crash.log")
@@ -13,19 +23,6 @@ def _excepthook(exc_type, exc_value, exc_tb):
 
 
 sys.excepthook = _excepthook
-
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from pathlib import Path
-import shutil
-import os
-import tempfile
-import logging
-import uvicorn
-import sys
-from processing import load_and_clean_excel, compute_retrocessions
 
 
 def get_base_path():
