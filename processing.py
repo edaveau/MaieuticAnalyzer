@@ -143,6 +143,8 @@ def compute_retrocessions(df, ik_value=RETROCESSIONS_VARIABLES["IK"], if_value=R
 
         total_sans = total - deduction
 
+        total_moins_30pc = total_sans
+
         results[key]["total"] += total
         results[key]["total_sans_indemnites"] += total_sans
         results[key]["total_ik_if_md"] += deduction
