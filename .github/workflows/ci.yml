@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - staging
+  pull_request:
+    branches:
+      - staging
+  push:
+    tags:
+      - "v*"
+
+jobs:
+
+  # =========================
+  # LINT (ruff)
+  # =========================
+  lint:
+    name: Ruff check & format
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Ruff
+        run: pip install ruff
+
+      - name: Ruff check (fail si erreur)
+        run: ruff check .
+
+      - name: Ruff format (info only)
+        run: ruff format --check .
+
+  # =========================
+  # BUILD INSTALLER
+  # =========================
+  build-installer:
+    name: Build Windows Installer
+    runs-on: windows-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Extract version
+        id: version
+        run: |
+          $version = "${env:GITHUB_REF_NAME}" -replace "^v", ""
+          echo "VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      # Installer NSIS
+      - name: Install NSIS
+        run: |
+          choco install nsis -y
+
+      # Build exe
+      - name: Build EXE (PyInstaller)
+        run: |
+          pyinstaller MaieuticAnalyzer.spec
+
+      # Build installer NSIS
+      - name: Build installer
+        run: |
+          makensis /DAPP_VERSION=${{ env.VERSION }} MaieuticAnalyzer_installer.nsi
+
+      # Upload artefact
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: MaieuticAnalyzer-Setup
+          path: MaieuticAnalyzer_Setup.exe
