@@ -65,6 +65,13 @@ jobs:
           pip install uv
           uv sync
 
+      - name: Download mkcert
+        run: |
+          mkdir bin
+          Invoke-WebRequest `
+            -Uri https://github.com/FiloSottile/mkcert/releases/latest/download/mkcert-v1.4.4-windows-amd64.exe `
+            -OutFile bin/mkcert.exe
+
       # Installer NSIS
       - name: Install NSIS
         run: |
