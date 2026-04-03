@@ -12,8 +12,8 @@ def _excepthook(exc_type, exc_value, exc_tb):
 
 sys.excepthook = _excepthook
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
@@ -101,23 +101,34 @@ async def upload(
     if_val: float = Form(...),
     md: float = Form(...),
 ):
+    suffix = Path(file.filename).suffix
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        shutil.copyfileobj(file.file, tmp)
+        temp_path = tmp.name
 
     try:
-        suffix = Path(file.filename).suffix
-        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-            shutil.copyfileobj(file.file, tmp)
-        temp_path = tmp.name
         df = load_and_clean_excel(temp_path)
         result = compute_retrocessions(df, ik, if_val, md)
+        return result
     except Exception as e:
         logging.exception("Erreur lors du traitement du fichier.")
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        # On retourne TOUJOURS du JSON, même en cas d'erreur
+        return JSONResponse(
+            status_code=500,
+            content={"error": True, "detail": str(e)}
+        )
     finally:
-        os.remove(temp_path)
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
 
-    return result
 
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logging.exception("Erreur non catchee")
+    return JSONResponse(
+        status_code=500,
+        content={"error": True, "detail": str(exc)}
+    )
 
 if __name__ == "__main__":
     try:
