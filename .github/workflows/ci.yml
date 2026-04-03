@@ -62,8 +62,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
-          pip install pyinstaller
+          pip install uv
+          uv sync
 
       # Installer NSIS
       - name: Install NSIS
@@ -78,7 +78,7 @@ jobs:
       # Build installer NSIS
       - name: Build installer
         run: |
-          makensis /DAPP_VERSION=${{ env.VERSION }} MaieuticAnalyzer_installer.nsi
+          & "C:\Program Files (x86)\NSIS\makensis.exe" /DAPP_VERSION=${{ env.VERSION }} MaieuticAnalyzer_installer.nsi
 
       # Upload artefact
       - name: Upload installer
