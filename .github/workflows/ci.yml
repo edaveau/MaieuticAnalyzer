@@ -10,6 +10,9 @@ on:
     branches:
       - staging
 
+permissions:
+  contents: write
+
 jobs:
 
   # =========================
@@ -87,9 +90,10 @@ jobs:
         run: |
           & "C:\Program Files (x86)\NSIS\makensis.exe" /DAPP_VERSION=${{ env.VERSION }} MaieuticAnalyzer_installer.nsi
 
-      # Upload artefact
-      - name: Upload installer
-        uses: actions/upload-artifact@v6
+      - name: Create Release + Upload
+        uses: softprops/action-gh-release@v2
         with:
-          name: MaieuticAnalyzer-Setup
-          path: MaieuticAnalyzer_${{ env.VERSION }}.exe
+          tag_name: ${{ github.ref_name }}
+          name: MaieuticAnalyzer ${{ env.VERSION }}
+          files: MaieuticAnalyzer_${{ env.VERSION }}.exe
+          
