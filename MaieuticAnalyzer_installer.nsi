@@ -71,6 +71,12 @@ Section "Installation principale" SecMain
 
   SetOutPath "$INSTDIR"
 
+  DetailPrint "Arret de l'application si en cours..."
+
+  nsExec::ExecToLog 'taskkill /IM "${EXE_NAME}" /F'
+  Pop $0
+  nsExec::ExecToLog 'schtasks /End /TN "${TASK_NAME}"'
+  
   ; --- Copie des fichiers applicatifs ---
   File "dist\${EXE_NAME}"
   File "bin\mkcert.exe"
@@ -154,11 +160,6 @@ Relancez l'installeur en tant qu'administrateur."
   ; --------------------------------------------------------
   ;  Entree Ajout/Suppression de programmes
   ; --------------------------------------------------------
-  DetailPrint "Arret de l'application si en cours..."
-
-  nsExec::ExecToLog 'taskkill /IM "${EXE_NAME}" /F'
-  Pop $0
-
   WriteRegStr   HKLM "${UNINSTALL_KEY}" "DisplayName"      "${APP_NAME}"
   WriteRegStr   HKLM "${UNINSTALL_KEY}" "DisplayVersion"   "${APP_VERSION}"
   WriteRegStr   HKLM "${UNINSTALL_KEY}" "Publisher"        "${APP_PUBLISHER}"
