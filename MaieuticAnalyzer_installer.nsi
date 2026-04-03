@@ -6,7 +6,7 @@ Unicode True
 
 ; ---------- Metadonnees ----------
 !define APP_NAME        "MaieuticAnalyzer"
-!define APP_VERSION     "1.0.0"
+!define APP_VERSION     "1.1.0"
 !define APP_PUBLISHER   "Cabinet de sages-femmes"
 !define APP_URL         "https://localhost:8443"
 !define EXE_NAME        "MaieuticAnalyzer.exe"
