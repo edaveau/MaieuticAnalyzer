@@ -189,9 +189,9 @@ Section "Uninstall"
   nsExec::ExecToLog 'schtasks /Delete /TN "${TASK_NAME}" /F'
   nsExec::ExecToLog 'netsh advfirewall firewall delete rule name="${FW_RULE_NAME}"'
 
-  ${If} ${FileExists} "$INSTDIR\mkcert.exe"
-    nsExec::ExecToLog '"$INSTDIR\mkcert.exe" -uninstall'
-  ${EndIf}
+  ; ${If} ${FileExists} "$INSTDIR\mkcert.exe"
+  ;   nsExec::ExecToLog '"$INSTDIR\mkcert.exe" -uninstall'
+  ; ${EndIf}
 
   Delete "$INSTDIR\${EXE_NAME}"
   Delete "$INSTDIR\mkcert.exe"

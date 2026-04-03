@@ -43,12 +43,17 @@ Pour un quickstart :
 python app.py
 ```
 
+Pour lancer l'appli en local :
+```
+python -m uvicorn app:app
+```
+
 Pour générer un build (Linux & Windows) :
 ```
 pyinstaller MaieuticAnalyzer.spec
 ```
 
-Pour générer un installateur Windows :
+Pour générer un installateur Windows *(ne pas oublier de lancer le build avant)* :
 ```
 & "C:\Program Files (x86)\NSIS\makensis.exe" MaieuticAnalyzer_installer.nsi
 ```
