@@ -82,6 +82,8 @@ def load_and_clean_excel(file):
 
     df.columns = df.columns.str.strip()
 
+    df = df.fillna(0)
+
     df.rename(
         columns={
             "numero adeli": "numero_adeli",
