@@ -73,7 +73,7 @@ jobs:
       # Build exe
       - name: Build EXE (PyInstaller)
         run: |
-          pyinstaller MaieuticAnalyzer.spec
+          uv run pyinstaller MaieuticAnalyzer.spec
 
       # Build installer NSIS
       - name: Build installer
