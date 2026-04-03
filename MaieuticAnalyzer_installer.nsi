@@ -30,6 +30,14 @@ SetCompressor     lzma
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
+!define MUI_FINISHPAGE_RUN
+!define MUI_FINISHPAGE_RUN_TEXT "Lancer ${APP_NAME}"
+!define MUI_FINISHPAGE_RUN_FUNCTION LaunchApp
+!define MUI_FINISHPAGE_SHOWREADME
+!define MUI_FINISHPAGE_SHOWREADME_TEXT "Ouvrir https://localhost:8443"
+!define MUI_FINISHPAGE_SHOWREADME_FUNCTION OpenBrowser
+!define MUI_FINISHPAGE_RUN_CHECKED
+!define MUI_FINISHPAGE_SHOWREADME_CHECKED
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
@@ -38,6 +46,27 @@ SetCompressor     lzma
 ; ============================================================
 ;  INSTALLATION
 ; ============================================================
+Function .onInit
+  ReadRegStr $R0 HKLM "${UNINSTALL_KEY}" "UninstallString"
+  StrCmp $R0 "" done
+
+  MessageBox MB_YESNO|MB_ICONQUESTION \
+    "${APP_NAME} est déjà installé. Voulez-vous le réinstaller ?" \
+    IDYES do_uninstall IDNO done
+
+  do_uninstall:
+    ExecWait '$R0 /S'
+  done:
+FunctionEnd
+
+Function LaunchApp
+  Exec "$INSTDIR\${EXE_NAME}"
+FunctionEnd
+
+Function OpenBrowser
+  ExecShell "open" "https://localhost:8443"
+FunctionEnd
+
 Section "Installation principale" SecMain
 
   SetOutPath "$INSTDIR"
@@ -51,6 +80,9 @@ Section "Installation principale" SecMain
   ; --------------------------------------------------------
   ;  Generation des certificats TLS avec mkcert
   ; --------------------------------------------------------
+  Delete "$INSTDIR\cert.pem"
+  Delete "$INSTDIR\key.pem"
+
   DetailPrint "Installation de la CA locale mkcert..."
   nsExec::ExecToLog '"$INSTDIR\mkcert.exe" -install'
   Pop $0
