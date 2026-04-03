@@ -120,7 +120,7 @@ def compute_retrocessions(df, ik_value=RETROCESSIONS_VARIABLES["IK"], if_value=R
         # On initialise l'aggrégation et les valeurs de total pour toute sage-femme
         # n'étant pas encore dans `results`
         if key not in results:
-            results[key] = {"total": 0, "total_sans_indemnites": 0, "total_ik_if_md": 0}
+            results[key] = {"total": 0, "total_sans_indemnites": 0, "total_ik_if_md": 0, "total_moins_30pc": 0}
 
         actes = parse_actes(row["actes"])
         honoraires = float(row["honoraire"])
@@ -143,11 +143,12 @@ def compute_retrocessions(df, ik_value=RETROCESSIONS_VARIABLES["IK"], if_value=R
 
         total_sans = total - deduction
 
-        total_moins_30pc = total_sans
+        total_moins_30pc = total - total_sans * 0.3
 
         results[key]["total"] += total
         results[key]["total_sans_indemnites"] += total_sans
         results[key]["total_ik_if_md"] += deduction
+        results[key]["total_moins_30pc"] += total_moins_30pc
 
     # Calculs finaux
     final = []
@@ -159,6 +160,7 @@ def compute_retrocessions(df, ik_value=RETROCESSIONS_VARIABLES["IK"], if_value=R
                 "total": round(data["total"], 2),
                 "indemnites": round(data["total_ik_if_md"], 2),
                 "retro_30": round(data["total_sans_indemnites"] * 0.3, 2),
+                "total_moins_30pc": round(data["total_moins_30pc"], 2),
                 "retro_40": round(data["total"] * 0.4, 2),
             }
         )

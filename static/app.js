@@ -99,7 +99,7 @@ async function upload() {
         showSuccess("Calcul terminé avec succès !");
 
     } catch (err) {
-        console.error(err); // Utile pour toi dans la console du navigateur
+        console.error(err); 
         showError("Erreur : " + err.message);
     }
 }
@@ -117,9 +117,9 @@ function renderTable(data) {
             <td>${row.total}</td>
             <td>${row.indemnites}</td>
             <td>${row.retro_30}</td>
+            <td>${row.total_moins_30pc}</td>
             <td>${row.retro_40}</td>
         `;
-
         tbody.appendChild(tr);
     });
 }
