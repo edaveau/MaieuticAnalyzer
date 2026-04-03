@@ -180,6 +180,12 @@ SectionEnd
 ; ============================================================
 Section "Uninstall"
 
+  DetailPrint "Arret de l'application..."
+
+  nsExec::ExecToLog 'schtasks /End /TN "${TASK_NAME}"'
+  nsExec::ExecToLog 'taskkill /IM "${EXE_NAME}" /F'
+  Sleep 1000
+
   nsExec::ExecToLog 'schtasks /Delete /TN "${TASK_NAME}" /F'
   nsExec::ExecToLog 'netsh advfirewall firewall delete rule name="${FW_RULE_NAME}"'
 

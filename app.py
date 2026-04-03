@@ -101,16 +101,17 @@ async def upload(
     if_val: float = Form(...),
     md: float = Form(...),
 ):
-    suffix = Path(file.filename).suffix
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-        shutil.copyfileobj(file.file, tmp)
-        temp_path = tmp.name
 
     try:
+        suffix = Path(file.filename).suffix
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            shutil.copyfileobj(file.file, tmp)
+        temp_path = tmp.name
         df = load_and_clean_excel(temp_path)
         result = compute_retrocessions(df, ik, if_val, md)
     except Exception as e:
         logging.exception("Erreur lors du traitement du fichier.")
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         os.remove(temp_path)
