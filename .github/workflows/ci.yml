@@ -62,8 +62,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
-          pip install pyinstaller
+          pip install uv
+          uv sync
 
       # Installer NSIS
       - name: Install NSIS
