@@ -154,6 +154,11 @@ Relancez l'installeur en tant qu'administrateur."
   ; --------------------------------------------------------
   ;  Entree Ajout/Suppression de programmes
   ; --------------------------------------------------------
+  DetailPrint "Arret de l'application si en cours..."
+
+  nsExec::ExecToLog 'taskkill /IM "${EXE_NAME}" /F'
+  Pop $0
+
   WriteRegStr   HKLM "${UNINSTALL_KEY}" "DisplayName"      "${APP_NAME}"
   WriteRegStr   HKLM "${UNINSTALL_KEY}" "DisplayVersion"   "${APP_VERSION}"
   WriteRegStr   HKLM "${UNINSTALL_KEY}" "Publisher"        "${APP_PUBLISHER}"
@@ -165,8 +170,7 @@ Relancez l'installeur en tant qu'administrateur."
 
   WriteUninstaller "$INSTDIR\Uninstall.exe"
 
-  DetailPrint "Installation terminee !"
-  DetailPrint "L'appli demarrera au prochain login. Acces : https://localhost:8443"
+  DetailPrint "Installation terminée !"
 
 SectionEnd
 
