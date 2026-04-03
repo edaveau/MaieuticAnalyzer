@@ -7,8 +7,6 @@ a = Analysis(
     datas=[
         ('templates', 'templates'),
         ('static', 'static'),
-        ('certs/cert.pem', '.'),
-        ('certs/key.pem', '.'),
     ],
     hiddenimports=[
         'jinja2',
