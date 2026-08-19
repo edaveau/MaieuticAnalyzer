@@ -41,10 +41,10 @@ jobs:
         run: ruff format --check .
 
   # =========================
-  # BUILD INSTALLER
+  # BUILD EXE FILE
   # =========================
-  build-installer:
-    name: Build Windows Installer
+  build-exe:
+    name: Build Windows executable
     runs-on: windows-latest
     if: startsWith(github.ref, 'refs/tags/')
 
@@ -57,43 +57,34 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Extract version
-        id: version
-        run: |
-          $version = "${env:GITHUB_REF_NAME}" -replace "^v", ""
-          echo "VERSION=$version" >> $env:GITHUB_ENV
-
       - name: Install dependencies
         run: |
           pip install uv
           uv sync
 
       - name: Download mkcert
+        shell: pwsh
         run: |
-          mkdir bin
+          New-Item -ItemType Directory -Force -Path bin
           Invoke-WebRequest `
-            -Uri https://github.com/FiloSottile/mkcert/releases/latest/download/mkcert-v1.4.4-windows-amd64.exe `
-            -OutFile bin/mkcert.exe
+            -Uri "https://github.com/FiloSottile/mkcert/releases/latest/download/mkcert-v1.4.4-windows-amd64.exe" `
+            -OutFile "bin/mkcert.exe"
 
-      # Installer NSIS
-      - name: Install NSIS
-        run: |
-          choco install nsis -y
-
-      # Build exe
-      - name: Build EXE (PyInstaller)
+      - name: Build EXE
         run: |
           uv run pyinstaller MaieuticAnalyzer.spec
 
-      # Build installer NSIS
-      - name: Build installer
+      - name: Rename executable
+        shell: pwsh
         run: |
-          & "C:\Program Files (x86)\NSIS\makensis.exe" /DAPP_VERSION=${{ env.VERSION }} MaieuticAnalyzer_installer.nsi
+          $version = "${env:GITHUB_REF_NAME}" -replace "^v", ""
+          Rename-Item `
+            "dist\MaieuticAnalyzer.exe" `
+            "MaieuticAnalyzer_$version.exe"
 
       - name: Create Release + Upload
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: MaieuticAnalyzer ${{ env.VERSION }}
-          files: MaieuticAnalyzer_${{ env.VERSION }}.exe
-          
+          name: MaieuticAnalyzer ${{ env.GITHUB_REF_NAME }}
+          files: dist/MaieuticAnalyzer_*.exe

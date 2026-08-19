@@ -1,7 +1,9 @@
+import ctypes
 import logging
 import os
 import socket
 import shutil
+import subprocess
 import sys
 import tempfile
 import threading
@@ -40,6 +42,156 @@ BASE_PATH = get_base_path()
 templates_path = os.path.join(BASE_PATH, "templates")
 static_path = os.path.join(BASE_PATH, "static")
 
+def is_admin():
+    """Retourne True si l'application est exécutée avec les droits administrateur."""
+    try:
+        return bool(ctypes.windll.shell32.IsUserAnAdmin())
+    except (AttributeError, OSError):
+        return False
+
+
+def show_first_run_message():
+    """Affiche le message expliquant pourquoi les droits administrateur sont nécessaires."""
+    ctypes.windll.user32.MessageBoxW(
+        0,
+        (
+            "MaieuticAnalyzer doit effectuer une configuration initiale.\n\n"
+            "Pour sécuriser la connexion HTTPS, l'application doit installer "
+            "un certificat de confiance sur cet ordinateur.\n\n"
+            "Cette opération nécessite les droits administrateur et "
+            "ne sera nécessaire qu'une seule fois.\n\n"
+            "Cliquez sur OK pour relancer automatiquement MaieuticAnalyzer "
+            "avec les droits administrateur."
+        ),
+        "Première configuration de MaieuticAnalyzer",
+        0x40,  # MB_ICONINFORMATION
+    )
+
+
+def relaunch_as_admin():
+    """Relance l'application avec élévation UAC."""
+    if not getattr(sys, "frozen", False):
+        return False
+
+    executable = sys.executable
+
+    result = ctypes.windll.shell32.ShellExecuteW(
+        None,
+        "runas",
+        executable,
+        None,
+        None,
+        1,
+    )
+
+    return result > 32
+
+
+def get_mkcert_path():
+    """Retourne le chemin vers mkcert embarqué par PyInstaller."""
+    if getattr(sys, "frozen", False):
+        return os.path.join(sys._MEIPASS, "mkcert.exe")
+
+    return os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "bin",
+        "mkcert.exe",
+    )
+
+
+def initialize_certificates():
+    """
+    Vérifie la présence des certificats et les génère si nécessaire.
+
+    En mode packagé, une première exécution nécessite une élévation UAC
+    afin que mkcert puisse installer sa CA dans le magasin Windows.
+    """
+
+    if os.name != "nt":
+        return (
+            os.path.join(BASE_PATH, "certs", "cert.pem"),
+            os.path.join(BASE_PATH, "certs", "key.pem"),
+        )
+
+    exe_dir = (
+        os.path.dirname(sys.executable)
+        if getattr(sys, "frozen", False)
+        else os.path.dirname(os.path.abspath(__file__))
+    )
+
+    cert_path = os.path.join(exe_dir, "cert.pem")
+    key_path = os.path.join(exe_dir, "key.pem")
+
+    # Tout est déjà configuré.
+    if os.path.exists(cert_path) and os.path.exists(key_path):
+        return cert_path, key_path
+
+    # En mode développement, on ne tente pas d'élever le processus.
+    if not getattr(sys, "frozen", False):
+        raise FileNotFoundError(
+            "Certificats absents du répertoire certs/. "
+            "Lancez mkcert -install puis générez les certificats."
+        )
+
+    # Première installation : il faut les droits administrateur.
+    if not is_admin():
+        show_first_run_message()
+
+        if not relaunch_as_admin():
+            raise RuntimeError(
+                "La configuration initiale nécessite les droits administrateur."
+            )
+
+        # Le processus actuel doit s'arrêter. Le processus élevé va continuer.
+        sys.exit(0)
+
+    mkcert = get_mkcert_path()
+
+    if not os.path.exists(mkcert):
+        raise FileNotFoundError(
+            f"mkcert.exe introuvable : {mkcert}"
+        )
+
+    logging.info("Première configuration HTTPS : installation de mkcert.")
+
+    result = subprocess.run(
+        [mkcert, "-install"],
+        capture_output=True,
+        text=True,
+    )
+
+    if result.returncode != 0:
+        raise RuntimeError(
+            "Impossible d'installer le certificat racine mkcert.\n\n"
+            f"{result.stdout}\n{result.stderr}"
+        )
+
+    logging.info("CA mkcert installée.")
+
+    result = subprocess.run(
+        [
+            mkcert,
+            "-cert-file",
+            cert_path,
+            "-key-file",
+            key_path,
+            "localhost",
+            "127.0.0.1",
+        ],
+        capture_output=True,
+        text=True,
+    )
+
+    if result.returncode != 0:
+        raise RuntimeError(
+            "Impossible de générer les certificats HTTPS.\n\n"
+            f"{result.stdout}\n{result.stderr}"
+        )
+
+    logging.info("Certificats HTTPS générés.")
+
+    return cert_path, key_path
+
 
 def find_cert(filename: str) -> str:
     """
@@ -69,9 +221,6 @@ def find_cert(filename: str) -> str:
     )
 
 
-cert_path = find_cert("cert.pem")
-key_path = find_cert("key.pem")
-
 # Logs portables Windows/Linux
 if os.name == "nt":
     log_base = os.getenv("APPDATA", os.path.expanduser("~"))
@@ -88,10 +237,17 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
 
+cert_path, key_path = initialize_certificates()
+
+
 def wait_and_open_browser():
-    for _ in range(50):
+    """Attend que le serveur HTTPS soit disponible puis ouvre le navigateur."""
+    for _ in range(100):
         try:
-            with socket.create_connection(("127.0.0.1", 8443), timeout=0.2):
+            with socket.create_connection(
+                ("127.0.0.1", 8443),
+                timeout=0.2,
+            ):
                 webbrowser.open("https://localhost:8443")
                 return
         except OSError:
@@ -146,8 +302,8 @@ if __name__ == "__main__":
     try:
         threading.Thread(
             target=wait_and_open_browser,
-            daemon=True
-            ).start()
+            daemon=True,
+        ).start()
 
         uvicorn.run(
             app,

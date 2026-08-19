@@ -7,6 +7,7 @@ a = Analysis(
     datas=[
         ('templates', 'templates'),
         ('static', 'static'),
+        ('bin/mkcert.exe', '.'),
     ],
     hiddenimports=[
         'jinja2',
