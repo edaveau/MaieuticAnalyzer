@@ -42,6 +42,7 @@ BASE_PATH = get_base_path()
 templates_path = os.path.join(BASE_PATH, "templates")
 static_path = os.path.join(BASE_PATH, "static")
 
+
 def is_admin():
     """Retourne True si l'application est exécutée avec les droits administrateur."""
     try:
@@ -148,9 +149,7 @@ def initialize_certificates():
     mkcert = get_mkcert_path()
 
     if not os.path.exists(mkcert):
-        raise FileNotFoundError(
-            f"mkcert.exe introuvable : {mkcert}"
-        )
+        raise FileNotFoundError(f"mkcert.exe introuvable : {mkcert}")
 
     logging.info("Première configuration HTTPS : installation de mkcert.")
 
@@ -253,8 +252,10 @@ def wait_and_open_browser():
         except OSError:
             time.sleep(0.1)
 
+
 def open_browser():
     webbrowser.open("https://localhost:8443")
+
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory=static_path), name="static")
