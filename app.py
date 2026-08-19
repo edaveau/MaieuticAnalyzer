@@ -1,10 +1,14 @@
 import logging
 import os
+import socket
 import shutil
 import sys
 import tempfile
+import threading
+import time
 import traceback
 import uvicorn
+import webbrowser
 from fastapi import FastAPI, UploadFile, File, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -84,6 +88,18 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
 
+def wait_and_open_browser():
+    for _ in range(50):
+        try:
+            with socket.create_connection(("127.0.0.1", 8443), timeout=0.2):
+                webbrowser.open("https://localhost:8443")
+                return
+        except OSError:
+            time.sleep(0.1)
+
+def open_browser():
+    webbrowser.open("https://localhost:8443")
+
 app = FastAPI()
 app.mount("/static", StaticFiles(directory=static_path), name="static")
 templates = Jinja2Templates(directory=templates_path)
@@ -128,6 +144,11 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 if __name__ == "__main__":
     try:
+        threading.Thread(
+            target=wait_and_open_browser,
+            daemon=True
+            ).start()
+
         uvicorn.run(
             app,
             host="127.0.0.1",
