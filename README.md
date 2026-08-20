@@ -4,6 +4,10 @@
 
 Petite application permettant de calculer les rétrocessions issues d'un export MaieuticApp.
 
+## User zone
+
+Pour utiliser et lancer l'application, rien de plus simple. Téléchargez la [dernière release](https://github.com/edaveau/MaieuticAnalyzer/releases/latest), et lancez une première fois l'exécutable. Si c'est la première fois qu'il est lancé sur votre PC, une configuration aura lieu. Cliquez une deuxième fois sur l'exécutable pour relancer l'appli.
+
 ## Build zone
 
 ### Installer les prérequis pour les certificats
@@ -35,12 +39,11 @@ uv sync
 
 Sur Windows, commencez par télécharger [NSIS](https://nsis.sourceforge.io/Main_Page), puis téléchargez les prérequis Python :
 ```ps1
-winget install NSIS.NSIS
 scoop install main/uv
 uv sync
 ```
 
-> Allez récupérer la [dernière version du build de mkcert](https://github.com/FiloSottile/mkcert/releases) pour Windows amd64, et placez la à la racine de ce dépôt dans un répertoire `.\bin\` que vous aurez créé. Renommez le en mkcert.exe
+> Allez récupérer la dernière version du build de mkcert pour [Windows AMD64](https://dl.filippo.io/mkcert/latest?for=windows/amd64) ou [Linux AMD64](https://dl.filippo.io/mkcert/latest?for=linux/amd64), et placez la à la racine de ce dépôt dans un répertoire `.\bin\` que vous aurez créé. Renommez le en mkcert.exe
 
 ### Builder l'applicatif
 
@@ -59,7 +62,3 @@ Pour générer un build (Linux & Windows) :
 pyinstaller MaieuticAnalyzer.spec
 ```
 
-Pour générer un installateur Windows *(ne pas oublier de lancer le build avant)* :
-```
-& "C:\Program Files (x86)\NSIS\makensis.exe" MaieuticAnalyzer_installer.nsi
-```
